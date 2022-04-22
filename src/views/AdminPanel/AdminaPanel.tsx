@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { UserItem } from '../../components/UserIte/UserItem';
+import { useNavigate } from 'react-router-dom';
+import { ListGroup, Table } from 'react-bootstrap';
+import { UserItem } from '../../components/UserItem/UserItem';
 import { UserEntity } from '../../types/user.entity';
 
 interface Props {
@@ -12,17 +14,21 @@ export function AdminaPanel({
 }: Props) {
   const [users, setUsers] = useState<UserEntity[]>([]);
   const [selectedUsersId, setSelectedUsersId] = useState<string[]>([]);
+  const navigate = useNavigate();
 
   async function fetchUsers() {
     const res = await fetch('https://itransition-app.herokuapp.com/user', {
       method: 'GET',
+      cache: 'no-cache',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
     const data = await res.json();
     if (data.redirect) {
+      localStorage.removeItem('token');
       setToken('');
+      navigate('/');
     } else {
       setUsers(data.users);
     }
@@ -39,14 +45,15 @@ export function AdminaPanel({
     });
     const data = await res.json();
     if (data.redirect) {
+      localStorage.removeItem('token');
       setToken('');
+      navigate('/');
     } else {
       await fetchUsers();
     }
   }
 
-  async function deleteSelectedUsers() {
-    console.log(JSON.stringify({ ids: selectedUsersId }));
+  const deleteSelectedUsers = async () => {
     const res = await fetch('https://itransition-app.herokuapp.com/user', {
       method: 'DELETE',
       headers: {
@@ -57,15 +64,20 @@ export function AdminaPanel({
     });
     const data = await res.json();
     if (data.redirect) {
+      localStorage.removeItem('token');
       setToken('');
+      navigate('/');
     } else {
       await fetchUsers();
       setSelectedUsersId([]);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchUsers();
+    setToken(localStorage.getItem('token') || '');
+    if (token) {
+      fetchUsers();
+    }
   }, [token]);
 
   if (!token) {
@@ -73,17 +85,17 @@ export function AdminaPanel({
   }
 
   return (
-    <form>
-      <ul>
-        <button onClick={() => blockOrUnblockSelectedUsers(true)} type="button">Block</button>
-        <button onClick={() => blockOrUnblockSelectedUsers(false)} type="button">Unblock</button>
-        <button onClick={deleteSelectedUsers} type="button">Delete</button>
-      </ul>
-      <table>
+    <>
+      <ListGroup horizontal className="text-center">
+        <ListGroup.Item action as="button" onClick={() => blockOrUnblockSelectedUsers(true)}>Block selected users</ListGroup.Item>
+        <ListGroup.Item action as="button" onClick={() => blockOrUnblockSelectedUsers(false)}>Unblock selected users</ListGroup.Item>
+        <ListGroup.Item action onClick={deleteSelectedUsers}>Delete selected users</ListGroup.Item>
+      </ListGroup>
+      <Table bordered responsive striped>
         <thead>
-          <tr>
+          <tr className="text-center">
             <th>Action</th>
-            <th>Id</th>
+            <th className="text-uppercase">Id</th>
             <th>E-mail</th>
             <th>Name</th>
             <th>Last login time</th>
@@ -98,7 +110,7 @@ export function AdminaPanel({
             ))
           }
         </tbody>
-      </table>
-    </form>
+      </Table>
+    </>
   );
 }

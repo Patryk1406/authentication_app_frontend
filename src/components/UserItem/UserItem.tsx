@@ -17,7 +17,7 @@ export function UserItem({ user, setAsSelected }: Props) {
   }
   return (
     <tr>
-      <input type="checkbox" onChange={changeSelection} />
+      <td className="text-center"><input type="checkbox" onChange={changeSelection} /></td>
       <td>{user._id}</td>
       <td>{user._email}</td>
       <td>{user._name}</td>

@@ -1,34 +1,47 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { Nav } from 'react-bootstrap';
+import { NavLink, useNavigate } from 'react-router-dom';
 
 interface Props {
   token: string;
+  activeKey: string
   setToken: (arg: string) => void;
+  setActiveKey: (newActiveKey: string) => void;
 }
 
-export function Header({ token, setToken }: Props) {
-  function logOut() {
+export function Header({
+  token, activeKey, setToken, setActiveKey,
+}: Props) {
+  const navigate = useNavigate();
+
+  const logOut = () => {
     setToken('');
+    localStorage.removeItem('token');
+    setActiveKey('login');
+    navigate('/');
+  };
+
+  if (!token) {
+    return (
+      <Nav variant="tabs" className="justify-content-center" activeKey={activeKey}>
+        <Nav.Item>
+          <Nav.Link as={NavLink} to="/signup" eventKey="signup" onClick={() => setActiveKey('signup')}>Sign up</Nav.Link>
+        </Nav.Item>
+        <Nav.Item>
+          <Nav.Link as={NavLink} to="/" eventKey="login" onClick={() => setActiveKey('login')}>Sign in</Nav.Link>
+        </Nav.Item>
+      </Nav>
+    );
   }
 
   return (
-    <header>
-      <nav>
-        <ul>
-          { !token && (
-          <>
-            <li><NavLink to="/signup">Sign-up</NavLink></li>
-            <li><NavLink to="/login">Log in</NavLink></li>
-          </>
-          ) }
-          {token && (
-          <>
-            <li><button type="button" onClick={logOut}>Log out</button></li>
-            <li><NavLink to="/">Admin panel</NavLink></li>
-          </>
-          )}
-        </ul>
-      </nav>
-    </header>
+    <Nav variant="tabs" className="justify-content-center" activeKey="admin">
+      <Nav.Item>
+        <Nav.Link as={NavLink} to="/admin" eventKey="admin" onClick={() => setActiveKey('admin')}>Admin panel</Nav.Link>
+      </Nav.Item>
+      <Nav.Item>
+        <Nav.Link as="button" eventKey="logout" onClick={logOut}>Log out</Nav.Link>
+      </Nav.Item>
+    </Nav>
   );
 }
