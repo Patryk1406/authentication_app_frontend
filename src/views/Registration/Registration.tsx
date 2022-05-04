@@ -1,69 +1,91 @@
-import React, { ChangeEvent, FormEvent, useState } from 'react';
-import { Button, Form } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
+import React, {
+  ChangeEvent, FormEvent, useReducer, useState,
+} from 'react';
+import {
+  Button,
+  Col, Container, Form, Row,
+} from 'react-bootstrap';
+import { UserEntity } from '../../types/user.entity';
+import { FormGroup } from '../../components/FormGroup/FormGroup';
 
-interface Props {
-  setActiveKey: (newActiveKey: string) => void;
+enum UserActionType {
+  'CHANGE_EMAIL',
+  'CHANGE_PASSWORD',
+  'CHANGE_NAME',
 }
 
-export function Registration({ setActiveKey }: Props) {
-  const [name, setName] = useState<string>('');
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const navigate = useNavigate();
+export interface UserAction {
+  type: UserActionType.CHANGE_NAME | UserActionType.CHANGE_EMAIL | UserActionType.CHANGE_PASSWORD
+  payload: string;
+}
 
-  async function sendSignUpForm() {
-    const res = await fetch('https://itransition-app.herokuapp.com/user/signup', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name,
-        email,
-        password,
-        time: `${new Date().getFullYear()}-${new Date().getMonth() + 1}-${new Date().getDate()} ${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()}`,
-      }),
-    });
-    const data = await res.json();
-    if (!data.ok) {
-      alert(data.message);
-    } else {
-      setActiveKey('login');
-      navigate('/');
-    }
+const userReducer = (prevState: UserEntity, action: UserAction): UserEntity => {
+  switch (action.type) {
+    case UserActionType.CHANGE_EMAIL:
+      return { ...prevState, email: action.payload };
+    case UserActionType.CHANGE_NAME:
+      return { ...prevState, name: action.payload };
+    case UserActionType.CHANGE_PASSWORD:
+      return { ...prevState, password: action.payload };
+    default:
+      return prevState;
   }
+};
 
-  const emailChangeHandler = (e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value);
+const initialUser = {
+  email: '',
+  name: '',
+  password: '',
+};
 
-  const passwordChangeHandler = (e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value);
+export function Registration() {
+  const [user, dispatch] = useReducer(userReducer, initialUser);
+  const [validated, setValidated] = useState<boolean>(false);
 
-  const nameChangeHandler = (e: ChangeEvent<HTMLInputElement>) => setName(e.target.value);
-
-  const submitHandler = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    await sendSignUpForm();
+  const changeEmailHandler = (e: ChangeEvent<HTMLInputElement>) => {
+    dispatch({ type: UserActionType.CHANGE_EMAIL, payload: e.target.value });
   };
+
+  const changePasswordHandler = (e: ChangeEvent<HTMLInputElement>) => {
+    const input = e.target;
+    if (!/[a-z]/.test(input.value)) input.setCustomValidity('Your password must contain a lowercase letter.');
+    else if (!/[A-Z]/.test(input.value)) input.setCustomValidity('Your password must contain an uppercase letter.');
+    else if (!/\d/.test(input.value)) input.setCustomValidity('Your password must contain a number.');
+    else if (!/[!@#$%^&*()_\-=+\\|'";:?/.>,<[\]{}`~]/.test(input.value)) input.setCustomValidity('Your password must contain a special sign.');
+    else input.setCustomValidity('');
+
+    dispatch({ type: UserActionType.CHANGE_PASSWORD, payload: e.target.value });
+  };
+
+  const changeNameHandler = (e: ChangeEvent<HTMLInputElement>) => {
+    if (!/^\p{L}+$/u.test(e.target.value)) e.target.setCustomValidity('Your name can only be made up of letters.');
+    else e.target.setCustomValidity('');
+    dispatch({ type: UserActionType.CHANGE_NAME, payload: e.target.value });
+  };
+
+  const formSubmitHandler = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setValidated(true);
+    console.log(user);
+  };
+
   return (
-    <div className="container vh-100 d-flex flex-wrap align-items-center justify-content-center">
-      <p className="w-100 align-self-end text-center"><b>Enter your personal data to create an account</b></p>
-      <Form className="align-self-start" onSubmit={submitHandler}>
-        <Form.Group className="mb-3">
-          <Form.Label>Email address</Form.Label>
-          <Form.Control type="email" placeholder="Enter email" onChange={emailChangeHandler} />
-        </Form.Group>
-        <Form.Group className="mb-3">
-          <Form.Label>Password</Form.Label>
-          <Form.Control type="password" placeholder="Password" onChange={passwordChangeHandler} autoComplete="on" />
-        </Form.Group>
-        <Form.Group className="mb-3">
-          <Form.Label>Name</Form.Label>
-          <Form.Control type="text" placeholder="Enter your name" onChange={nameChangeHandler} />
-        </Form.Group>
-        <Button variant="primary" type="submit">
-          Submit
-        </Button>
-      </Form>
-    </div>
+    <Container>
+      <Row>
+        <Col>
+          <h2 className="text-center">Create your account</h2>
+        </Col>
+      </Row>
+      <Row className="justify-content-center">
+        <Col xs="12" md="8" xl="6">
+          <Form onSubmit={formSubmitHandler} validated={validated}>
+            <FormGroup inputLabel="E-mail address" inputPlaceholder="Enter your email address" inputType="email" onChangeInputValue={changeEmailHandler} maxLength={70} />
+            <FormGroup inputLabel="Password" inputPlaceholder="Enter your password address" inputType="password" onChangeInputValue={changePasswordHandler} minLength={8} />
+            <FormGroup inputLabel="Name" inputPlaceholder="Enter your first name" inputType="text" onChangeInputValue={changeNameHandler} minLength={2} maxLength={60} />
+            <Button variant="primary" type="submit">Sign Up</Button>
+          </Form>
+        </Col>
+      </Row>
+    </Container>
   );
 }
