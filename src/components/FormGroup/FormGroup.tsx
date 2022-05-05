@@ -7,13 +7,14 @@ interface Props {
   inputLabel: string;
   inputType: string;
   inputPlaceholder: string;
+  inputValue: string;
   onChangeInputValue: (e: ChangeEvent<HTMLInputElement>) => void;
   minLength?: number;
-  maxLength?: number
+  maxLength?: number;
 }
 
 export function FormGroup({
-  inputLabel, inputType, inputPlaceholder, onChangeInputValue, maxLength, minLength,
+  inputLabel, inputType, inputPlaceholder, onChangeInputValue, maxLength, minLength, inputValue,
 }: Props) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const changeInputType = (newType: string) => {
@@ -27,6 +28,7 @@ export function FormGroup({
           ref={inputRef}
           type={inputType}
           placeholder={inputPlaceholder}
+          value={inputValue}
           onChange={onChangeInputValue}
           required
           minLength={minLength}

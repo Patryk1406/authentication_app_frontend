@@ -11,7 +11,7 @@ export function App() {
     <>
       <Header />
       <Routes>
-        <Route path="/" element={token ? <Navigate to="/admin" replace /> : <Navigate to="/signup" replace />} />
+        <Route path="/" element={token ? <Navigate to="/admin" replace /> : <Navigate to="/login" replace />} />
         <Route path="/signup" element={<Registration />} />
       </Routes>
     </>

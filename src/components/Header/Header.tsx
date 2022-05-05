@@ -24,7 +24,7 @@ export function Header() {
   return (
     <Navbar bg="primary" variant="dark" expand="md" className="mb-3">
       <Container fluid>
-        <LinkContainer to={token ? '/admin' : '/signup'}>
+        <LinkContainer to={token ? '/admin' : '/login'}>
           <Navbar.Brand>My App</Navbar.Brand>
         </LinkContainer>
         <Navbar.Toggle aria-controls="responsive-navbar-nav" />
