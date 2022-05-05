@@ -11,7 +11,7 @@ In the project directory, you can run:
 Runs the app in the development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
-####  Important, this project requires [authetication_app_REST_API](https://github.com/Patryk1406/authentication_app_REST_API) to work in properly.
+#### Important, this project requires running [authetication_app_REST_API](https://github.com/Patryk1406/authentication_app_REST_API) on your localhost:3001 to work properly.
 
 The page will reload if you make edits.\
 You will also see any lint errors in the console.
