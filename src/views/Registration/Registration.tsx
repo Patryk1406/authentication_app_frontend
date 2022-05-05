@@ -89,7 +89,6 @@ export function Registration() {
       setIsLoading(false);
       if (res.status === 409) {
         const { message } = await res.json() as { message: string };
-        console.log(message);
         setErrorBody(message);
       }
       setShowErrorModal(true);
