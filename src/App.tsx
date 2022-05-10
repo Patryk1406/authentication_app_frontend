@@ -13,8 +13,8 @@ export function App() {
       <Header />
       <Routes>
         <Route path="/" element={token ? <Navigate to="/admin-panel" replace /> : <Navigate to="/login" replace />} />
-        <Route path="/signup" element={<Registration />} />
-        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={token ? <Navigate to="/admin-panel" replace /> : <Registration />} />
+        <Route path="/login" element={token ? <Navigate to="/admin-panel" replace /> : <Login />} />
         <Route path="/admin-panel" element={token ? <h1>Hello</h1> : <Navigate to="/login" replace />} />
       </Routes>
     </>

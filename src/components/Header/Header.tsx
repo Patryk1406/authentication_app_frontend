@@ -9,7 +9,7 @@ export function Header() {
 
   const toShowIfLogged = (
     <>
-      <NavItem path="/admin" text="Admin panel" />
+      <NavItem path="/admin-panel" text="Admin panel" />
       <NavItem path="/login" text="Log out" onClick={logOut} />
     </>
   );
@@ -24,7 +24,7 @@ export function Header() {
   return (
     <Navbar bg="primary" variant="dark" expand="md" className="mb-3">
       <Container fluid>
-        <LinkContainer to={token ? '/admin' : '/login'}>
+        <LinkContainer to={token ? '/admin-panel' : '/login'}>
           <Navbar.Brand>My App</Navbar.Brand>
         </LinkContainer>
         <Navbar.Toggle aria-controls="responsive-navbar-nav" />

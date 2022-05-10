@@ -11,14 +11,15 @@ import { ContainerCenter } from '../../components/ContainerCenter/ContainerCente
 import { LoadingSpinner } from '../../components/LoadingSpinner/LoadingSpinner';
 import { AuthContext, IAuthContext } from '../../store/authContext';
 import { useModal } from '../../hooks/useModal';
+import { sendRequest } from '../../utils/send-request';
 
 export function Login() {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
-  const [modalElement, openModal, setModalMessage] = useModal();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const navigate = useNavigate();
   const { logIn } = useContext(AuthContext) as IAuthContext;
+  const [modalElement, openModal, setModalMessage] = useModal();
 
   const changeEmailHandler = (e: ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
@@ -31,13 +32,7 @@ export function Login() {
   const submitHandler = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    const res = await fetch('http://localhost:3001/user/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
+    const res = await sendRequest('http://localhost:3001/user/login', 'POST', { email, password });
     if (!res.ok) {
       setIsLoading(false);
       if (res.status !== 500) {

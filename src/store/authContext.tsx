@@ -1,6 +1,7 @@
 import React, {
   createContext, ReactNode, useEffect, useMemo, useState,
 } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export interface IAuthContext {
   token: string;
@@ -16,7 +17,22 @@ interface Props {
 
 export function AuthContextProvider({ children }: Props) {
   const [token, setToken] = useState<string>('');
+  const navigate = useNavigate();
   let timeoutId: number;
+
+  const logOut = () => {
+    setToken('');
+    localStorage.removeItem('token');
+    localStorage.removeItem('expirationTime');
+    navigate('/login');
+  };
+
+  const logIn = (newToken: string, expirationTime: number) => {
+    setToken(newToken);
+    localStorage.setItem('token', newToken);
+    localStorage.setItem('expirationTime', JSON.stringify(expirationTime));
+    timeoutId = window.setTimeout(() => logOut(), 10000);
+  };
 
   useEffect(() => {
     const JwtToken = localStorage.getItem('token');
@@ -25,27 +41,11 @@ export function AuthContextProvider({ children }: Props) {
       if (timeDifference < 0) localStorage.clear();
       else {
         setToken(JwtToken);
-        timeoutId = window.setTimeout(() => localStorage.clear(), JSON.parse(localStorage.getItem('expirationTime') as string) - Date.now());
+        timeoutId = window.setTimeout(() => logOut(), JSON.parse(localStorage.getItem('expirationTime') as string) - Date.now());
       }
     }
     return () => clearTimeout(timeoutId);
   }, []);
-
-  const logOut = () => {
-    setToken('');
-    localStorage.removeItem('token');
-    localStorage.removeItem('expirationTime');
-  };
-
-  const logIn = (newToken: string, expirationTime: number) => {
-    setToken(newToken);
-    localStorage.setItem('token', newToken);
-    localStorage.setItem('expirationTime', JSON.stringify(expirationTime));
-    timeoutId = window.setTimeout(() => {
-      setToken('');
-      localStorage.clear();
-    }, 10000);
-  };
 
   const contextValue: IAuthContext = useMemo(() => ({
     token,

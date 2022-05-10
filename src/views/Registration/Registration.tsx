@@ -1,7 +1,7 @@
 import React, {
   ChangeEvent, FormEvent, useReducer, useState,
 } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { UserEntity } from '../../types/user.entity';
 import { FormGroup } from '../../components/Form/FormGroup/FormGroup';
 import { LoadingSpinner } from '../../components/LoadingSpinner/LoadingSpinner';
@@ -12,6 +12,7 @@ import { FormTitle } from '../../components/Form/FormTitle/FormTitle';
 import { FormWrapper } from '../../components/Form/FormWrapper/FormWrapper';
 import { ContainerCenter } from '../../components/ContainerCenter/ContainerCenter';
 import { useModal } from '../../hooks/useModal';
+import { sendRequest } from '../../utils/send-request';
 
 enum UserActionType {
   'CHANGE_EMAIL',
@@ -73,13 +74,7 @@ export function Registration() {
   const formSubmitHandler = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    const res = await fetch('http://localhost:3001/user/signup', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(user),
-    });
+    const res = await sendRequest('http://localhost:3001/user/signup', 'POST', user);
     if (!res.ok) {
       setIsLoading(false);
       if (res.status === 409) {
@@ -88,7 +83,10 @@ export function Registration() {
       }
       openModal();
     } else {
-      navigate('/login');
+      setIsLoading(false);
+      setModalMessage('You are successfully signed up!');
+      openModal();
+      setTimeout(() => navigate('/login'), 1000);
     }
   };
 
@@ -107,8 +105,21 @@ export function Registration() {
             showDescription
             minLength={8}
           />
-          <FormGroup inputLabel="Name" inputPlaceholder="Enter your first name" inputType="text" inputValue={user.name} onChangeInputValue={changeNameHandler} minLength={2} maxLength={60} />
+          <FormGroup
+            inputLabel="Name"
+            inputPlaceholder="Enter your first name"
+            inputType="text"
+            inputValue={user.name}
+            onChangeInputValue={changeNameHandler}
+            minLength={2}
+            maxLength={60}
+          />
         </FormWithValidation>
+        <p className="mt-4 h6 text-center">
+          You are already signed up? Let&apos;s click&nbsp;
+          <Link to="/login">here</Link>
+          &nbsp;to go to the login page.
+        </p>
       </FormWrapper>
     </ContainerCenter>
   );
