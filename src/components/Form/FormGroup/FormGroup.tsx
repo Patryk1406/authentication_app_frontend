@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useRef } from 'react';
+import React, { ChangeEvent, ReactNode, useRef } from 'react';
 import { Form, InputGroup } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye } from '@fortawesome/free-solid-svg-icons';
@@ -11,15 +11,24 @@ interface Props {
   onChangeInputValue: (e: ChangeEvent<HTMLInputElement>) => void;
   minLength?: number;
   maxLength?: number;
+  formText?: ReactNode;
 }
 
 export function FormGroup({
-  inputLabel, inputType, inputPlaceholder, onChangeInputValue, maxLength, minLength, inputValue,
+  inputLabel,
+  inputType,
+  inputPlaceholder,
+  onChangeInputValue,
+  maxLength,
+  minLength,
+  inputValue,
+  formText,
 }: Props) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const changeInputType = (newType: string) => {
     inputRef.current?.setAttribute('type', newType);
   };
+
   return (
     <Form.Group className="mb-3">
       <Form.Label>{inputLabel}</Form.Label>
@@ -37,18 +46,7 @@ export function FormGroup({
         />
         { inputType === 'password' && <FontAwesomeIcon className="position-absolute end-0 me-2" style={{ cursor: 'pointer' }} icon={faEye} onMouseDown={() => changeInputType('text')} onMouseUp={() => changeInputType('password')} />}
       </InputGroup>
-      {inputType === 'password' && (
-      <Form.Text>
-        Your password must contain the following:
-        <ul>
-          <li>minimum 8 chars</li>
-          <li>uppercase letter</li>
-          <li>lowercase letter</li>
-          <li>number</li>
-          <li>special sign</li>
-        </ul>
-      </Form.Text>
-      )}
+      <Form.Text>{formText}</Form.Text>
     </Form.Group>
   );
 }

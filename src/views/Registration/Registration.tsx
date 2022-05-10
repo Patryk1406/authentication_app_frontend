@@ -1,15 +1,17 @@
 import React, {
   ChangeEvent, FormEvent, useReducer, useState,
 } from 'react';
-import {
-  Button,
-  Col, Container, Form, Row,
-} from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { UserEntity } from '../../types/user.entity';
-import { FormGroup } from '../../components/FormGroup/FormGroup';
+import { FormGroup } from '../../components/Form/FormGroup/FormGroup';
 import { LoadingSpinner } from '../../components/LoadingSpinner/LoadingSpinner';
-import { ErrorModal } from '../../components/Modals/ErrorModal/ErrorModal';
+import { FormWithValidation } from '../../components/Form/FormWithValidation/FormWithValidation';
+import { EmailFormGroup } from '../../components/Form/FormGroup/EmailFormGroup';
+import { PasswordFormGroup } from '../../components/Form/FormGroup/PasswordFormGroup';
+import { FormTitle } from '../../components/Form/FormTitle/FormTitle';
+import { FormWrapper } from '../../components/Form/FormWrapper/FormWrapper';
+import { ContainerCenter } from '../../components/ContainerCenter/ContainerCenter';
+import { useModal } from '../../hooks/useModal';
 
 enum UserActionType {
   'CHANGE_EMAIL',
@@ -43,15 +45,9 @@ const initialUser = {
 
 export function Registration() {
   const [user, dispatchUser] = useReducer(userReducer, initialUser);
-  const [showErrorModal, setShowErrorModal] = useState<boolean>(false);
-  const [errorBody, setErrorBody] = useState<string>('');
-  const [validated, setValidated] = useState<boolean>(false);
+  const [modalElement, openModal, setModalMessage] = useModal();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const navigate = useNavigate();
-
-  const closeModalHandler = () => {
-    setShowErrorModal(false);
-  };
 
   const changeEmailHandler = (e: ChangeEvent<HTMLInputElement>) => {
     dispatchUser({ type: UserActionType.CHANGE_EMAIL, payload: e.target.value });
@@ -76,7 +72,6 @@ export function Registration() {
 
   const formSubmitHandler = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setValidated(true);
     setIsLoading(true);
     const res = await fetch('http://localhost:3001/user/signup', {
       method: 'POST',
@@ -89,9 +84,9 @@ export function Registration() {
       setIsLoading(false);
       if (res.status === 409) {
         const { message } = await res.json() as { message: string };
-        setErrorBody(message);
+        setModalMessage(message);
       }
-      setShowErrorModal(true);
+      openModal();
     } else {
       navigate('/login');
     }
@@ -100,25 +95,21 @@ export function Registration() {
   if (isLoading) return <LoadingSpinner />;
 
   return (
-    <>
-      { showErrorModal && <ErrorModal body={errorBody} closeHandler={closeModalHandler} />}
-      <Container>
-        <Row>
-          <Col>
-            <h2 className="text-center">Create your account</h2>
-          </Col>
-        </Row>
-        <Row className="justify-content-center">
-          <Col xs="12" md="8" xl="6">
-            <Form onSubmit={formSubmitHandler} validated={validated}>
-              <FormGroup inputLabel="E-mail address" inputPlaceholder="Enter your email address" inputType="email" inputValue={user.email} onChangeInputValue={changeEmailHandler} maxLength={70} />
-              <FormGroup inputLabel="Password" inputPlaceholder="Enter your password address" inputType="password" inputValue={user.password} onChangeInputValue={changePasswordHandler} minLength={8} />
-              <FormGroup inputLabel="Name" inputPlaceholder="Enter your first name" inputType="text" inputValue={user.name} onChangeInputValue={changeNameHandler} minLength={2} maxLength={60} />
-              <Button variant="primary" type="submit">Sign Up</Button>
-            </Form>
-          </Col>
-        </Row>
-      </Container>
-    </>
+    <ContainerCenter>
+      {modalElement}
+      <FormTitle title="Create your account" />
+      <FormWrapper>
+        <FormWithValidation onSubmit={formSubmitHandler} buttonText="Sign up">
+          <EmailFormGroup email={user.email} changeEmailHandler={changeEmailHandler} />
+          <PasswordFormGroup
+            password={user.password}
+            changePasswordHandler={changePasswordHandler}
+            showDescription
+            minLength={8}
+          />
+          <FormGroup inputLabel="Name" inputPlaceholder="Enter your first name" inputType="text" inputValue={user.name} onChangeInputValue={changeNameHandler} minLength={2} maxLength={60} />
+        </FormWithValidation>
+      </FormWrapper>
+    </ContainerCenter>
   );
 }

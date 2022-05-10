@@ -5,12 +5,12 @@ import { AuthContext, IAuthContext } from '../../store/authContext';
 import { NavItem } from './NavItem/NavItem';
 
 export function Header() {
-  const { token, logOutHandler } = useContext(AuthContext) as IAuthContext;
+  const { token, logOut } = useContext(AuthContext) as IAuthContext;
 
   const toShowIfLogged = (
     <>
       <NavItem path="/admin" text="Admin panel" />
-      <NavItem path="/signup" text="Log out" onClick={logOutHandler} />
+      <NavItem path="/login" text="Log out" onClick={logOut} />
     </>
   );
 
