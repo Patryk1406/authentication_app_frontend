@@ -1,118 +1,98 @@
-// import React, { useEffect, useState } from 'react';
-// import { useNavigate } from 'react-router-dom';
-// import { ListGroup, Table } from 'react-bootstrap';
-// import { UserItem } from '../../components/UserItem/UserItem';
-// import { UserEntity } from '../../types/user.entity';
-//
-// interface Props {
-//   token: string
-//   setToken: (newValue: string) => void;
-// }
-//
-// export function AdminaPanel({
-//   setToken, token,
-// }: Props) {
-//   const [users, setUsers] = useState<UserEntity[]>([]);
-//   const [selectedUsersId, setSelectedUsersId] = useState<string[]>([]);
-//   const navigate = useNavigate();
-//
-//   async function fetchUsers() {
-//     const res = await fetch('https://itransition-app.herokuapp.com/user', {
-//       method: 'GET',
-//       cache: 'no-cache',
-//       headers: {
-//         Authorization: `Bearer ${token}`,
-//       },
-//     });
-//     const data = await res.json();
-//     if (data.redirect) {
-//       localStorage.removeItem('token');
-//       setToken('');
-//       navigate('/');
-//     } else {
-//       setUsers(data.users);
-//     }
-//   }
-//
-//   async function blockOrUnblockSelectedUsers(block: boolean) {
-//     const res = await fetch('https://itransition-app.herokuapp.com/user', {
-//       method: 'PATCH',
-//       headers: {
-//         Authorization: `Bearer ${token}`,
-//         'Content-Type': 'application/json',
-//       },
-//       body: JSON.stringify({ ids: selectedUsersId, block }),
-//     });
-//     const data = await res.json();
-//     if (data.redirect) {
-//       localStorage.removeItem('token');
-//       setToken('');
-//       navigate('/');
-//     } else {
-//       await fetchUsers();
-//     }
-//   }
-//
-//   const deleteSelectedUsers = async () => {
-//     const res = await fetch('https://itransition-app.herokuapp.com/user', {
-//       method: 'DELETE',
-//       headers: {
-//         Authorization: `Bearer ${token}`,
-//         'Content-Type': 'application/json',
-//       },
-//       body: JSON.stringify({ ids: selectedUsersId }),
-//     });
-//     const data = await res.json();
-//     if (data.redirect) {
-//       localStorage.removeItem('token');
-//       setToken('');
-//       navigate('/');
-//     } else {
-//       await fetchUsers();
-//       setSelectedUsersId([]);
-//     }
-//   };
-//
-//   useEffect(() => {
-//     setToken(localStorage.getItem('token') || '');
-//     if (token) {
-//       fetchUsers();
-//     }
-//   }, [token]);
-//
-//   if (!token) {
-//     return null;
-//   }
-//
-//   return (
-//     <>
-//       <ListGroup horizontal className="text-center">
-//         <ListGroup.Item action as="button" onClick={() => blockOrUnblockSelectedUsers(true)}>Block selected users</ListGroup.Item>
-//         <ListGroup.Item action as="button" onClick={() => blockOrUnblockSelectedUsers(false)}>Unblock selected users</ListGroup.Item>
-//         <ListGroup.Item action onClick={deleteSelectedUsers}>Delete selected users</ListGroup.Item>
-//       </ListGroup>
-//       <Table bordered responsive striped>
-//         <thead>
-//           <tr className="text-center">
-//             <th>Action</th>
-//             <th className="text-uppercase">Id</th>
-//             <th>E-mail</th>
-//             <th>Name</th>
-//             <th>Last login time</th>
-//             <th>Registration time</th>
-//             <th>Status</th>
-//           </tr>
-//         </thead>
-//         <tbody>
-//           {
-//             users.map((user) => (
-//               <UserItem key={user._id} user={user} setAsSelected={setSelectedUsersId} />
-//             ))
-//           }
-//         </tbody>
-//       </Table>
-//     </>
-//   );
-// }
+import React, {
+  ChangeEvent, useContext, useEffect, useState,
+} from 'react';
+import { UserEntity } from 'types';
+import {
+  Alert,
+  Button, Navbar, Table,
+} from 'react-bootstrap';
+import { AuthContext, IAuthContext } from '../../store/authContext';
+import { LoadingSpinner } from '../../components/LoadingSpinner/LoadingSpinner';
+import { useErrorModal } from '../../hooks/useErrorModal';
+import { UserItem } from '../../components/UserItem/UserItem';
+import { sendRequest } from '../../utils/send-request';
 
-export function fu() {}
+export function AdminaPanel() {
+  const [users, setUsers] = useState<UserEntity[]>([]);
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [modalElement, openModal, setModalMessage] = useErrorModal();
+  const { token } = useContext(AuthContext) as IAuthContext;
+
+  const fetchUsers = async () => {
+    setIsLoading(true);
+    const res = await sendRequest('http://localhost:3001/user', 'GET', { Authorization: `Bearer ${token}` });
+    if (!res.ok) {
+      const message = await res.json();
+      setModalMessage(message);
+      setIsLoading(false);
+      openModal();
+    } else {
+      const fetchedUsers = (await res.json() as { users: UserEntity[] }).users;
+      setUsers(fetchedUsers);
+      setIsLoading(false);
+    }
+  };
+
+  const selectUser = (id: string) => {
+    setSelectedUsers((prevState) => [...prevState, id]);
+  };
+
+  const unselectUser = (id: string) => {
+    setSelectedUsers((prevState) => prevState.filter((userId) => userId !== id));
+  };
+
+  const checkBoxHandler = (e: ChangeEvent<HTMLInputElement>) => {
+    const userId = e.target.value;
+    if (selectedUsers.includes(e.target.value)) unselectUser(userId);
+    else selectUser(userId);
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const deleteSelectedUsers = async () => {
+    setIsLoading(true);
+    const res = await sendRequest('http://localhost:3001/user', 'DELETE', { Authorization: `Bearer ${token}` }, { ids: selectedUsers });
+    if (!res.ok) {
+      openModal();
+    } else {
+      fetchUsers();
+      alert('operation completed successfully!');
+    }
+  };
+
+  if (isLoading) return <LoadingSpinner />;
+
+  return (
+    <>
+      {modalElement}
+      <Alert variant="danger">
+        <Alert.Heading>Oh snap! You got an error!</Alert.Heading>
+      </Alert>
+      <Navbar variant="dark" bg="dark" sticky="top" className=" p-2 justify-content-center">
+        <Button variant="warning" className="mx-2">Block selected users</Button>
+        <Button variant="danger" className="mx-2" onClick={deleteSelectedUsers}>Delete selected users</Button>
+      </Navbar>
+      <Table hover bordered size="sm" responsive>
+        <thead className="text-center text-uppercase">
+          <tr className="text-nowrap">
+            <th>Select</th>
+            <th>Id</th>
+            <th>E-mail</th>
+            <th>Name</th>
+            <th>Last login at</th>
+            <th>Registered at</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {users.map((user) => (
+            <UserItem key={user.id} user={user} checkBoxHandler={checkBoxHandler} />
+          ))}
+        </tbody>
+      </Table>
+    </>
+  );
+}

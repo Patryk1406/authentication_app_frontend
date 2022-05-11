@@ -2,7 +2,7 @@ import React, {
   ChangeEvent, FormEvent, useReducer, useState,
 } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { UserEntity } from '../../types/user.entity';
+import { UserEntity } from 'types';
 import { FormGroup } from '../../components/Form/FormGroup/FormGroup';
 import { LoadingSpinner } from '../../components/LoadingSpinner/LoadingSpinner';
 import { FormWithValidation } from '../../components/Form/FormWithValidation/FormWithValidation';
@@ -11,8 +11,9 @@ import { PasswordFormGroup } from '../../components/Form/FormGroup/PasswordFormG
 import { FormTitle } from '../../components/Form/FormTitle/FormTitle';
 import { FormWrapper } from '../../components/Form/FormWrapper/FormWrapper';
 import { ContainerCenter } from '../../components/ContainerCenter/ContainerCenter';
-import { useModal } from '../../hooks/useModal';
+import { useErrorModal } from '../../hooks/useErrorModal';
 import { sendRequest } from '../../utils/send-request';
+import { SuccessAlert } from '../../components/Alerts/SuccessAlert';
 
 enum UserActionType {
   'CHANGE_EMAIL',
@@ -46,8 +47,9 @@ const initialUser = {
 
 export function Registration() {
   const [user, dispatchUser] = useReducer(userReducer, initialUser);
-  const [modalElement, openModal, setModalMessage] = useModal();
+  const [modalElement, openModal, setModalMessage] = useErrorModal();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [showAlert, setShowAlert] = useState<boolean>(false);
   const navigate = useNavigate();
 
   const changeEmailHandler = (e: ChangeEvent<HTMLInputElement>) => {
@@ -74,7 +76,7 @@ export function Registration() {
   const formSubmitHandler = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    const res = await sendRequest('http://localhost:3001/user/signup', 'POST', user);
+    const res = await sendRequest('http://localhost:3001/user/signup', 'POST', {}, user);
     if (!res.ok) {
       setIsLoading(false);
       if (res.status === 409) {
@@ -84,9 +86,8 @@ export function Registration() {
       openModal();
     } else {
       setIsLoading(false);
-      setModalMessage('You are successfully signed up!');
-      openModal();
-      setTimeout(() => navigate('/login'), 1000);
+      setShowAlert(true);
+      window.setTimeout(() => navigate('/login'), 2000);
     }
   };
 
@@ -97,10 +98,11 @@ export function Registration() {
       {modalElement}
       <FormTitle title="Create your account" />
       <FormWrapper>
+        { showAlert && <SuccessAlert content="You are registered successfully! We will redirect you in a moment" />}
         <FormWithValidation onSubmit={formSubmitHandler} buttonText="Sign up">
           <EmailFormGroup email={user.email} changeEmailHandler={changeEmailHandler} />
           <PasswordFormGroup
-            password={user.password}
+            password={user.password as string}
             changePasswordHandler={changePasswordHandler}
             showDescription
             minLength={8}

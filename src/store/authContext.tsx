@@ -31,7 +31,7 @@ export function AuthContextProvider({ children }: Props) {
     setToken(newToken);
     localStorage.setItem('token', newToken);
     localStorage.setItem('expirationTime', JSON.stringify(expirationTime));
-    timeoutId = window.setTimeout(() => logOut(), 10000);
+    timeoutId = window.setTimeout(logOut, expirationTime - Date.now());
   };
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export function AuthContextProvider({ children }: Props) {
       if (timeDifference < 0) localStorage.clear();
       else {
         setToken(JwtToken);
-        timeoutId = window.setTimeout(() => logOut(), JSON.parse(localStorage.getItem('expirationTime') as string) - Date.now());
+        timeoutId = window.setTimeout(logOut, JSON.parse(localStorage.getItem('expirationTime') as string) - Date.now());
       }
     }
     return () => clearTimeout(timeoutId);

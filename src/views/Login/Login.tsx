@@ -10,7 +10,7 @@ import { FormTitle } from '../../components/Form/FormTitle/FormTitle';
 import { ContainerCenter } from '../../components/ContainerCenter/ContainerCenter';
 import { LoadingSpinner } from '../../components/LoadingSpinner/LoadingSpinner';
 import { AuthContext, IAuthContext } from '../../store/authContext';
-import { useModal } from '../../hooks/useModal';
+import { useErrorModal } from '../../hooks/useErrorModal';
 import { sendRequest } from '../../utils/send-request';
 
 export function Login() {
@@ -19,7 +19,7 @@ export function Login() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const navigate = useNavigate();
   const { logIn } = useContext(AuthContext) as IAuthContext;
-  const [modalElement, openModal, setModalMessage] = useModal();
+  const [modalElement, openModal, setModalMessage] = useErrorModal();
 
   const changeEmailHandler = (e: ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
@@ -32,7 +32,7 @@ export function Login() {
   const submitHandler = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    const res = await sendRequest('http://localhost:3001/user/login', 'POST', { email, password });
+    const res = await sendRequest('http://localhost:3001/user/login', 'POST', {}, { email, password });
     if (!res.ok) {
       setIsLoading(false);
       if (res.status !== 500) {
