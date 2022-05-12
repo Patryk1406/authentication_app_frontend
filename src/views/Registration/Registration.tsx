@@ -13,7 +13,7 @@ import { FormWrapper } from '../../components/Form/FormWrapper/FormWrapper';
 import { ContainerCenter } from '../../components/ContainerCenter/ContainerCenter';
 import { useErrorModal } from '../../hooks/useErrorModal';
 import { sendRequest } from '../../utils/send-request';
-import { SuccessAlert } from '../../components/Alerts/SuccessAlert';
+import { CustomAlert } from '../../components/Alerts/CustomAlert';
 
 enum UserActionType {
   'CHANGE_EMAIL',
@@ -98,7 +98,7 @@ export function Registration() {
       {modalElement}
       <FormTitle title="Create your account" />
       <FormWrapper>
-        { showAlert && <SuccessAlert content="You are registered successfully! We will redirect you in a moment" />}
+        <CustomAlert show={showAlert} content="You are registered successfully! We will redirect you in a moment" className="text-center" dismissible={false} />
         <FormWithValidation onSubmit={formSubmitHandler} buttonText="Sign up">
           <EmailFormGroup email={user.email} changeEmailHandler={changeEmailHandler} />
           <PasswordFormGroup

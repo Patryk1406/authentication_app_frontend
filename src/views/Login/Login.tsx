@@ -1,7 +1,7 @@
 import React, {
   ChangeEvent, FormEvent, useContext, useState,
 } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { FormWithValidation } from '../../components/Form/FormWithValidation/FormWithValidation';
 import { EmailFormGroup } from '../../components/Form/FormGroup/EmailFormGroup';
 import { PasswordFormGroup } from '../../components/Form/FormGroup/PasswordFormGroup';
@@ -12,6 +12,7 @@ import { LoadingSpinner } from '../../components/LoadingSpinner/LoadingSpinner';
 import { AuthContext, IAuthContext } from '../../store/authContext';
 import { useErrorModal } from '../../hooks/useErrorModal';
 import { sendRequest } from '../../utils/send-request';
+import { CustomAlert } from '../../components/Alerts/CustomAlert';
 
 export function Login() {
   const [email, setEmail] = useState<string>('');
@@ -19,6 +20,9 @@ export function Login() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const navigate = useNavigate();
   const { logIn } = useContext(AuthContext) as IAuthContext;
+  const [showAlert, setShowAlert] = (
+    useState<boolean>(!!(useLocation().state as { loggedOut: boolean })?.loggedOut)
+  );
   const [modalElement, openModal, setModalMessage] = useErrorModal();
 
   const changeEmailHandler = (e: ChangeEvent<HTMLInputElement>) => {
@@ -33,6 +37,7 @@ export function Login() {
     e.preventDefault();
     setIsLoading(true);
     const res = await sendRequest('http://localhost:3001/user/login', 'POST', {}, { email, password });
+    console.log(res.ok);
     if (!res.ok) {
       setIsLoading(false);
       if (res.status !== 500) {
@@ -57,6 +62,7 @@ export function Login() {
       {modalElement}
       <FormTitle title="Log in" />
       <FormWrapper>
+        <CustomAlert show={showAlert} variant="warning" dismissible content="Your session has expired. You have to log in again due to the security reasons." closeHandler={() => setShowAlert(false)} />
         <FormWithValidation onSubmit={submitHandler} buttonText="Log in">
           <EmailFormGroup email={email} changeEmailHandler={changeEmailHandler} />
           <PasswordFormGroup

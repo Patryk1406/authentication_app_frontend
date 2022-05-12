@@ -24,7 +24,9 @@ export function AuthContextProvider({ children }: Props) {
     setToken('');
     localStorage.removeItem('token');
     localStorage.removeItem('expirationTime');
-    navigate('/login');
+    navigate('/login', {
+      state: { loggedOut: true },
+    });
   };
 
   const logIn = (newToken: string, expirationTime: number) => {

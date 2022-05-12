@@ -15,7 +15,7 @@ export function CustomModal({
       <Modal.Header closeButton>{title}</Modal.Header>
       <Modal.Body>{body}</Modal.Body>
       <Modal.Footer>
-        <Button onClick={closeHandler}>Cancel</Button>
+        <Button onClick={closeHandler}>Exit</Button>
       </Modal.Footer>
     </Modal>
   );
